@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
 set -e
 
+# Persist wp-content on the Railway volume.
+# This must run here (after the official WordPress entrypoint has unpacked WordPress),
+# because that unpack replaces any wp-content symlink created earlier with a real folder.
+RAILWAY_VOLUME_PATH="${RAILWAY_VOLUME_PATH:-/data}"
+WP_CONTENT=/var/www/html/wp-content
+PERSIST_CONTENT="$RAILWAY_VOLUME_PATH/wp-content"
+
+mkdir -p "$PERSIST_CONTENT"
+
+if [ ! -L "$WP_CONTENT" ]; then
+  # Seed the volume with stock content, never overwriting anything already stored there
+  cp -an "$WP_CONTENT"/. "$PERSIST_CONTENT"/ 2>/dev/null || true
+  rm -rf "$WP_CONTENT"
+  ln -s "$PERSIST_CONTENT" "$WP_CONTENT"
+fi
+
+# Install/refresh must-use plugins from the image on every start
+mkdir -p "$PERSIST_CONTENT/mu-plugins"
+cp -f /usr/local/share/railway/mu-plugins/*.php "$PERSIST_CONTENT/mu-plugins/"
+
+chown -R www-data:www-data "$PERSIST_CONTENT"
+
 # Railway workaround: ensure only one MPM is enabled (prefork) right before Apache starts.
 a2dismod mpm_event  2>/dev/null || true
 a2dismod mpm_worker 2>/dev/null || true
