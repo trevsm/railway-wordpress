@@ -17,6 +17,12 @@ if [ ! -L "$WP_CONTENT" ]; then
   ln -s "$PERSIST_CONTENT" "$WP_CONTENT"
 fi
 
+# Remove stock plugins/themes this site does not use. Inactive code can still be attacked
+# by requesting its files directly, so don't leave it on disk. (The active theme and the
+# newest default theme are kept; WordPress needs a default theme to fall back to.)
+rm -rf "$PERSIST_CONTENT/plugins/akismet" "$PERSIST_CONTENT/plugins/hello.php" \
+       "$PERSIST_CONTENT/themes/twentytwentythree"
+
 # Install/refresh must-use plugins from the image on every start
 mkdir -p "$PERSIST_CONTENT/mu-plugins"
 cp -f /usr/local/share/railway/mu-plugins/*.php "$PERSIST_CONTENT/mu-plugins/"
