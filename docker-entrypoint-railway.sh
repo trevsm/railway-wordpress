@@ -14,6 +14,10 @@ if [ ! -L "$WP_CONTENT" ]; then
   ln -s "$PERSIST_CONTENT" "$WP_CONTENT"
 fi
 
+# Install/refresh must-use plugins from the image on every start
+mkdir -p "$PERSIST_CONTENT/mu-plugins"
+cp -f /usr/local/share/railway/mu-plugins/*.php "$PERSIST_CONTENT/mu-plugins/"
+
 chown -R www-data:www-data "$PERSIST_CONTENT"
 
 # IMPORTANT: call the real WordPress entrypoint by absolute path

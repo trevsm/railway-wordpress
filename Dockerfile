@@ -2,6 +2,13 @@ FROM wordpress:php8.2-apache
 
 RUN a2enmod rewrite headers expires
 
+# Block xmlrpc.php and wp-comments-post.php at the web server (bot targets)
+COPY railway-hardening.conf /etc/apache2/conf-available/railway-hardening.conf
+RUN a2enconf railway-hardening
+
+# Must-use plugins, copied into the persistent wp-content volume at startup
+COPY mu-plugins /usr/local/share/railway/mu-plugins
+
 # Wrap apache2-foreground so we can fix MPM at runtime (Railway re-enables modules)
 RUN mv /usr/local/bin/apache2-foreground /usr/local/bin/apache2-foreground.orig
 COPY apache2-foreground-railway /usr/local/bin/apache2-foreground
